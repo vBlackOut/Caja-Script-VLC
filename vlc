@@ -1,0 +1,63 @@
+#!/usr/bin/python3
+# coding: utf-8
+
+import os
+from subprocess import Popen
+import re
+
+cmd_total = ""
+all_file = []
+
+def alphaNumOrder(string):
+    """ Returns all numbers on 5 digits to let sort the string with numeric order.
+    Ex: alphaNumOrder("a6b12.125")  ==> "a00006b00012.00125"
+    """
+    return ''.join([format(int(x), '05d') if x.isdigit()
+                    else x for x in re.split(r'(\d+)', string)])
+
+all_extention = [".mp3",
+                 ".mp4",
+                 ".avi",
+                 ".mpg",
+                 ".mkv",
+                 ".flv"]
+
+path = "/"
+root = os.environ["CAJA_SCRIPT_SELECTED_FILE_PATHS"].strip() + path
+#root = "/home/fc_dev/Téléchargements/Mr Robot 2016 Saison 2 Complete MULTi VFF DTS-AC3 1080p HDLight x264.GHT/"
+
+
+def search_ext(root, by):
+    lists = []
+    for dirpath, dirnames, filenames in os.walk(
+            root):
+        for filename in [
+                f for f in filenames if f.endswith(by)]:
+            lists.append(
+                os.path.join(
+                    dirpath,
+                    filename))
+    return lists
+
+for extention in all_extention:
+	global all_file
+	all_file += search_ext(root, extention)
+	all_file.sort(key=alphaNumOrder)
+
+
+for cmd in all_file:
+    global cmd_total
+    cmd_total += '"' + cmd + '"' + " "
+
+command = "vlc --playlist-tree {}".format(cmd_total)
+proc = Popen(command, shell=True)
+
+# Open file for output
+#fd = open("output", "w")
+# Open xterm window with logs from that
+# file
+#p = subprocess.Popen(
+#   ["xterm", "-e", "tail", "-f", "output"])
+# Do logging
+#fd.write(cmd_total)
+#fd.flush()
